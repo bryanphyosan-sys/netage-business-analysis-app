@@ -1,69 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
-import Login from './Login';
-
-// Components များအားလုံးကို ချိတ်ဆက်ခြင်း
+import React, { useState } from 'react';
 import Dashboard from './Dashboard';
-import InventoryManager from './InventoryManager'; // ပစ္စည်းလက်ကျန် စနစ်အသစ်
 import DailySaleTracker from './DailySaleTracker';
 import MonthlyOpExTracker from './MonthlyOpExTracker';
-import RefundTracker from './RefundTracker';
 import InvoiceGenerator from './InvoiceGenerator';
-import InvoiceViewer from './InvoiceViewer';
+import RefundTracker from './RefundTracker';
+import InvoiceViewer from './InvoiceViewer'; // ဘောက်ချာရှာဖွေရန် ချိတ်ဆက်ခြင်း
 import AnnualReport from './AnnualReport';
 
 const App = () => {
-  const [session, setSession] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // App စပွင့်ချိန်တွင် Login ဝင်ထားပြီးသားလား စစ်ဆေးခြင်း
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Logout လုပ်ရန် Function
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
-  // အကယ်၍ Login မဝင်ရသေးပါက Login စာမျက်နှာကိုသာ ပြမည်
-  if (!session) {
-    return <Login />;
-  }
-
-  // Login ဝင်ပြီးသားဖြစ်ပါက အောက်ပါ Main App ကို ပြမည်
   const menuItems = [
     { id: 'dashboard', icon: '📊', label: 'ခြုံငုံသုံးသပ်ချက် (Dashboard)' },
-    { id: 'inventory', icon: '📦', label: 'ပစ္စည်းလက်ကျန် (Inventory)' }, // အသစ်ထပ်တိုးထားသော Menu
     { id: 'dailySale', icon: '💰', label: 'နေ့စဉ် အရောင်းမှတ်တမ်း' },
     { id: 'monthlyOpEx', icon: '📉', label: 'လစဉ် ကုန်ကျစရိတ်' },
     { id: 'refund', icon: '↩️', label: 'ပြန်အမ်းစာရင်း' },
     { id: 'invoice', icon: '🧾', label: 'ဘောက်ချာ ထုတ်ရန်' },
-    { id: 'invoiceViewer', icon: '🔍', label: 'ဘောက်ချာ ရှာဖွေရန်' },
+    { id: 'invoiceViewer', icon: '🔍', label: 'ဘောက်ချာ ရှာဖွေရန်' }, // အသစ်ထပ်တိုးထားသော Menu
     { id: 'annualReport', icon: '📑', label: 'နှစ်ချုပ် အစီရင်ခံစာ' }
   ];
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans overflow-hidden print:h-auto print:overflow-visible print:block">
       
-      {/* ဘယ်ဘက် Sidebar */}
+      {/* ဘယ်ဘက် Sidebar (Print ထုတ်လျှင် ဖျောက်ထားမည်) */}
       <aside className="w-64 bg-gray-900 text-white flex flex-col shadow-2xl print:hidden flex-shrink-0 z-20">
         
+        {/* Logo / Title Area */}
         <div className="p-6 border-b border-gray-800 text-center">
           <h1 className="text-xl font-black tracking-wider text-blue-400">NET AGE</h1>
           <p className="text-xs text-gray-400 font-medium tracking-widest mt-1 uppercase">Business Analysis</p>
         </div>
 
+        {/* Navigation Menu */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
           {menuItems.map((menu) => (
             <button
@@ -81,30 +50,27 @@ const App = () => {
           ))}
         </nav>
 
-        {/* User Info နှင့် Logout */}
-        <div className="p-4 border-t border-gray-800 text-center">
-          <p className="text-xs text-gray-400 mb-3 truncate">Logged in as: {session.user.email}</p>
-          <button 
-            onClick={handleLogout}
-            className="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2"
-          >
-            <span>🚪</span> ထွက်မည် (Logout)
-          </button>
+        {/* Footer info in Sidebar */}
+        <div className="p-4 border-t border-gray-800 text-center text-xs text-gray-500 font-medium">
+          <p>System Version 2.0</p>
+          <p className="mt-1">&copy; {new Date().getFullYear()} Net Age.</p>
         </div>
       </aside>
 
       {/* ညာဘက် အဓိက Content ပြသမည့်နေရာ */}
       <main className="flex-1 h-screen overflow-x-hidden overflow-y-auto bg-gray-50 relative print:h-auto print:overflow-visible print:block">
+        
+        {/* Tab အလိုက် သက်ဆိုင်ရာ Component များကို ပြသခြင်း */}
         <div className="w-full min-h-full print:block">
           {activeTab === 'dashboard' && <Dashboard />}
-          {activeTab === 'inventory' && <InventoryManager />} {/* အသစ်ထပ်တိုးထားသော Component */}
           {activeTab === 'dailySale' && <DailySaleTracker />}
           {activeTab === 'monthlyOpEx' && <MonthlyOpExTracker />}
           {activeTab === 'refund' && <RefundTracker />}
           {activeTab === 'invoice' && <InvoiceGenerator />}
-          {activeTab === 'invoiceViewer' && <InvoiceViewer />}
+          {activeTab === 'invoiceViewer' && <InvoiceViewer />} {/* အသစ်ထပ်တိုးထားသော Component */}
           {activeTab === 'annualReport' && <AnnualReport />}
         </div>
+        
       </main>
 
     </div>
