@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient'; // Database နှင့် ချိတ်ဆက်ရန်
-import Login from './Login'; // Login စာမျက်နှာ
+import { supabase } from './supabaseClient';
+import Login from './Login';
 
-// ကျန်သော Components များ
+// Components များအားလုံးကို ချိတ်ဆက်ခြင်း
 import Dashboard from './Dashboard';
+import InventoryManager from './InventoryManager'; // ပစ္စည်းလက်ကျန် စနစ်အသစ်
 import DailySaleTracker from './DailySaleTracker';
 import MonthlyOpExTracker from './MonthlyOpExTracker';
-import InvoiceGenerator from './InvoiceGenerator';
 import RefundTracker from './RefundTracker';
+import InvoiceGenerator from './InvoiceGenerator';
 import InvoiceViewer from './InvoiceViewer';
 import AnnualReport from './AnnualReport';
 
@@ -43,6 +44,7 @@ const App = () => {
   // Login ဝင်ပြီးသားဖြစ်ပါက အောက်ပါ Main App ကို ပြမည်
   const menuItems = [
     { id: 'dashboard', icon: '📊', label: 'ခြုံငုံသုံးသပ်ချက် (Dashboard)' },
+    { id: 'inventory', icon: '📦', label: 'ပစ္စည်းလက်ကျန် (Inventory)' }, // အသစ်ထပ်တိုးထားသော Menu
     { id: 'dailySale', icon: '💰', label: 'နေ့စဉ် အရောင်းမှတ်တမ်း' },
     { id: 'monthlyOpEx', icon: '📉', label: 'လစဉ် ကုန်ကျစရိတ်' },
     { id: 'refund', icon: '↩️', label: 'ပြန်အမ်းစာရင်း' },
@@ -54,6 +56,7 @@ const App = () => {
   return (
     <div className="flex h-screen bg-gray-100 font-sans overflow-hidden print:h-auto print:overflow-visible print:block">
       
+      {/* ဘယ်ဘက် Sidebar */}
       <aside className="w-64 bg-gray-900 text-white flex flex-col shadow-2xl print:hidden flex-shrink-0 z-20">
         
         <div className="p-6 border-b border-gray-800 text-center">
@@ -78,7 +81,7 @@ const App = () => {
           ))}
         </nav>
 
-        {/* User Info နှင့် Logout ခလုတ် အသစ်ထည့်သွင်းခြင်း */}
+        {/* User Info နှင့် Logout */}
         <div className="p-4 border-t border-gray-800 text-center">
           <p className="text-xs text-gray-400 mb-3 truncate">Logged in as: {session.user.email}</p>
           <button 
@@ -90,9 +93,11 @@ const App = () => {
         </div>
       </aside>
 
+      {/* ညာဘက် အဓိက Content ပြသမည့်နေရာ */}
       <main className="flex-1 h-screen overflow-x-hidden overflow-y-auto bg-gray-50 relative print:h-auto print:overflow-visible print:block">
         <div className="w-full min-h-full print:block">
           {activeTab === 'dashboard' && <Dashboard />}
+          {activeTab === 'inventory' && <InventoryManager />} {/* အသစ်ထပ်တိုးထားသော Component */}
           {activeTab === 'dailySale' && <DailySaleTracker />}
           {activeTab === 'monthlyOpEx' && <MonthlyOpExTracker />}
           {activeTab === 'refund' && <RefundTracker />}
