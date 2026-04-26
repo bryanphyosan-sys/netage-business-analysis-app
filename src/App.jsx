@@ -52,8 +52,8 @@ const App = () => {
       
       <aside className="w-64 h-full bg-gray-900 text-white flex flex-col shadow-2xl print:hidden flex-shrink-0 z-20">
         <div className="p-6 border-b border-gray-800 text-center flex-shrink-0">
-          <h1 className="text-xl font-black tracking-wider text-blue-400">NET AGE</h1>
-          <p className="text-xs text-gray-400 font-medium tracking-widest mt-1 uppercase">Business Analysis</p>
+          <h1 className="text-lg font-black tracking-wide text-blue-400">NET AGE - Aung Pyae</h1>
+          <p className="text-[11px] text-gray-400 font-medium tracking-widest mt-1 uppercase">Business Analysis</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
