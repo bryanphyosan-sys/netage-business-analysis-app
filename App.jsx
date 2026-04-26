@@ -31,7 +31,7 @@ const App = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 🔴 Logout ထွက်ရန် Function (ဒီနေရာမှာ ပြန်ထည့်ထားပါတယ်)
+  // Logout ထွက်ရန် Function
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) console.error("Logout Error:", error.message);
@@ -42,7 +42,6 @@ const App = () => {
     return <Login />;
   }
 
-  // Login ဝင်ပြီးသားဖြစ်ပါက အောက်ပါ Main App ကို ပြမည်
   const menuItems = [
     { id: 'dashboard', icon: '📊', label: 'ခြုံငုံသုံးသပ်ချက် (Dashboard)' },
     { id: 'inventory', icon: '📦', label: 'ပစ္စည်းလက်ကျန် (Inventory)' },
@@ -55,16 +54,17 @@ const App = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100 font-sans overflow-hidden print:h-auto print:overflow-visible print:block">
+    <div className="flex h-screen w-full bg-gray-100 font-sans overflow-hidden print:h-auto print:overflow-visible print:block">
       
-      {/* ဘယ်ဘက် Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white flex flex-col shadow-2xl print:hidden flex-shrink-0 z-20">
+      {/* ဘယ်ဘက် Sidebar ကို h-screen ဖြင့် အသေထားခြင်း */}
+      <aside className="w-64 h-full bg-gray-900 text-white flex flex-col shadow-2xl print:hidden flex-shrink-0 z-20">
         
-        <div className="p-6 border-b border-gray-800 text-center">
+        <div className="p-6 border-b border-gray-800 text-center flex-shrink-0">
           <h1 className="text-xl font-black tracking-wider text-blue-400">NET AGE</h1>
           <p className="text-xs text-gray-400 font-medium tracking-widest mt-1 uppercase">Business Analysis</p>
         </div>
 
+        {/* Menu များကိုသာ Scroll ဆွဲနိုင်အောင် ပြင်ဆင်ထားသည် */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
           {menuItems.map((menu) => (
             <button
@@ -82,9 +82,9 @@ const App = () => {
           ))}
         </nav>
 
-        {/* 🔴 User Info နှင့် Logout ခလုတ် (Sidebar အောက်ဆုံးတွင်) */}
-        <div className="p-4 border-t border-gray-800 text-center">
-          <p className="text-xs text-gray-400 mb-3 truncate">Logged in as: {session?.user?.email}</p>
+        {/* Logout အပိုင်းကို အောက်ခြေတွင် အသေ (Fixed) ကပ်ထားမည် */}
+        <div className="p-4 border-t border-gray-800 text-center bg-gray-900 flex-shrink-0">
+          <p className="text-xs text-gray-400 mb-3 truncate">Logged in as: {session?.user?.email || "Admin"}</p>
           <button 
             onClick={handleLogout}
             className="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2"
