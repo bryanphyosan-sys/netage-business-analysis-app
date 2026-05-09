@@ -37,13 +37,17 @@ const DailySaleTracker = () => {
     e.preventDefault();
     setIsSaving(true);
 
+    // 🔴 အမြတ်ငွေကို ကြိုတင်တွက်ချက်ခြင်း
+    const calculatedProfit = Number(sellingPrice) - Number(buyingPrice);
+
     const newSale = {
       date: date,
       item_name: itemName.trim(),
       category: category,
       payment_method: paymentMethod, 
       buying_price: Number(buyingPrice),
-      selling_price: Number(sellingPrice)
+      selling_price: Number(sellingPrice),
+      profit: calculatedProfit // 🔴 Database က တောင်းနေသော အမြတ်ငွေကိုပါ တစ်ပါတည်း ပို့ပေးလိုက်ပါပြီ
     };
 
     const { data, error } = await supabase
@@ -52,7 +56,7 @@ const DailySaleTracker = () => {
       .select();
 
     if (error) {
-      alert('Supabase Error: ' + error.message + '\n\n(ကျေးဇူးပြု၍ ဤစာသားကို Screenshot ရိုက်ပြပေးပါ ခင်ဗျာ)');
+      alert('Supabase Error: ' + error.message);
       console.error(error);
     } else {
       setSales([data[0], ...sales]);
@@ -72,7 +76,6 @@ const DailySaleTracker = () => {
     }
   };
 
-  // လအလိုက် ဒေတာများ စစ်ထုတ်ခြင်းနှင့် တွက်ချက်ခြင်း
   const filteredSales = sales.filter(sale => sale.date.startsWith(filterMonth));
   const totalSales = filteredSales.reduce((sum, item) => sum + Number(item.selling_price), 0);
   const totalProfit = filteredSales.reduce((sum, item) => sum + (Number(item.selling_price) - Number(item.buying_price)), 0);
@@ -84,7 +87,6 @@ const DailySaleTracker = () => {
         <span>💰</span> နေ့စဉ် အရောင်းမှတ်တမ်း
       </h2>
 
-      {/* ထိပ်ဆုံးက အမြတ်/အရင်း တွက်ချက်ပြသော ကတ်ပြားများ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
           <h3 className="text-sm font-semibold text-gray-500 mb-2">စုစုပေါင်း ရောင်းရငွေ</h3>
@@ -100,7 +102,6 @@ const DailySaleTracker = () => {
         </div>
       </div>
 
-      {/* စာရင်းသွင်းရန် Form */}
       <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-gray-200">
         <h3 className="text-lg font-bold text-gray-800 mb-6">အရောင်းစာရင်း အသစ်ထည့်ရန်</h3>
         <form onSubmit={handleAddSale} className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
@@ -132,7 +133,7 @@ const DailySaleTracker = () => {
               <option value="KPay">KPay</option>
               <option value="WavePay">WavePay</option>
               <option value="CBPay">CBPay</option>
-              <option value="COD">COD</option> {/* 🔴 အသစ်ထပ်တိုးထားသော COD Option */}
+              <option value="COD">COD</option>
             </select>
           </div>
 
@@ -155,7 +156,6 @@ const DailySaleTracker = () => {
         </form>
       </div>
 
-      {/* အောက်ဘက် အရောင်းမှတ်တမ်း ဇယား */}
       <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
         <div className="p-4 border-b bg-white flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-800">အရောင်းမှတ်တမ်းများ</h3>
