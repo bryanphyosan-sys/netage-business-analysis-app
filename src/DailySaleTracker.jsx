@@ -9,8 +9,8 @@ const DailySaleTracker = () => {
   // Form States
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [itemName, setItemName] = useState('');
-  const [category, setCategory] = useState('Laptops'); // မူလပုံစံတွင်ပါသော အမျိုးအစား
-  const [paymentMethod, setPaymentMethod] = useState('Cash'); // 🔴 အသစ်ထပ်တိုးထားသော ငွေချေစနစ်
+  const [category, setCategory] = useState('Laptops'); 
+  const [paymentMethod, setPaymentMethod] = useState('Cash'); 
   const [buyingPrice, setBuyingPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   
@@ -41,7 +41,7 @@ const DailySaleTracker = () => {
       date: date,
       item_name: itemName.trim(),
       category: category,
-      payment_method: paymentMethod, // 🔴 အသစ်ထည့်ထားသည်
+      payment_method: paymentMethod, 
       buying_price: Number(buyingPrice),
       selling_price: Number(sellingPrice)
     };
@@ -71,7 +71,7 @@ const DailySaleTracker = () => {
     }
   };
 
-  // လအလိုက် ဒေတာများ စစ်ထုတ်ခြင်းနှင့် တွက်ချက်ခြင်း (မူလပုံစံအတိုင်း)
+  // လအလိုက် ဒေတာများ စစ်ထုတ်ခြင်းနှင့် တွက်ချက်ခြင်း
   const filteredSales = sales.filter(sale => sale.date.startsWith(filterMonth));
   const totalSales = filteredSales.reduce((sum, item) => sum + Number(item.selling_price), 0);
   const totalProfit = filteredSales.reduce((sum, item) => sum + (Number(item.selling_price) - Number(item.buying_price)), 0);
@@ -83,7 +83,7 @@ const DailySaleTracker = () => {
         <span>💰</span> နေ့စဉ် အရောင်းမှတ်တမ်း
       </h2>
 
-      {/* ထိပ်ဆုံးက အမြတ်/အရင်း တွက်ချက်ပြသော ကတ်ပြားများ (မူလပုံစံ) */}
+      {/* ထိပ်ဆုံးက အမြတ်/အရင်း တွက်ချက်ပြသော ကတ်ပြားများ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
           <h3 className="text-sm font-semibold text-gray-500 mb-2">စုစုပေါင်း ရောင်းရငွေ</h3>
@@ -99,7 +99,7 @@ const DailySaleTracker = () => {
         </div>
       </div>
 
-      {/* စာရင်းသွင်းရန် Form (မူလပုံစံအတိုင်း) */}
+      {/* စာရင်းသွင်းရန် Form */}
       <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-gray-200">
         <h3 className="text-lg font-bold text-gray-800 mb-6">အရောင်းစာရင်း အသစ်ထည့်ရန်</h3>
         <form onSubmit={handleAddSale} className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
@@ -124,7 +124,6 @@ const DailySaleTracker = () => {
             </select>
           </div>
 
-          {/* 🔴 အသစ်ထပ်တိုးထားသော ငွေချေစနစ် */}
           <div className="md:col-span-1">
             <label className="block text-xs font-bold text-gray-600 mb-1">ငွေချေစနစ်</label>
             <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500 bg-white">
@@ -132,6 +131,7 @@ const DailySaleTracker = () => {
               <option value="KPay">KPay</option>
               <option value="WavePay">WavePay</option>
               <option value="CBPay">CBPay</option>
+              <option value="COD">COD</option> {/* 🔴 အသစ်ထပ်တိုးထားသော COD Option */}
             </select>
           </div>
 
@@ -154,7 +154,7 @@ const DailySaleTracker = () => {
         </form>
       </div>
 
-      {/* အောက်ဘက် အရောင်းမှတ်တမ်း ဇယား (မူလပုံစံအတိုင်း) */}
+      {/* အောက်ဘက် အရောင်းမှတ်တမ်း ဇယား */}
       <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
         <div className="p-4 border-b bg-white flex justify-between items-center">
           <h3 className="text-lg font-bold text-gray-800">အရောင်းမှတ်တမ်းများ</h3>
@@ -179,7 +179,7 @@ const DailySaleTracker = () => {
                   <th className="p-4">ရက်စွဲ</th>
                   <th className="p-4">ပစ္စည်းအမည်</th>
                   <th className="p-4 text-center">အမျိုးအစား</th>
-                  <th className="p-4 text-center">ငွေချေစနစ်</th> {/* 🔴 အသစ်ထပ်တိုးထားသည် */}
+                  <th className="p-4 text-center">ငွေချေစနစ်</th> 
                   <th className="p-4 text-right">ဝယ်ရင်းဈေး</th>
                   <th className="p-4 text-right">ရောင်းဈေး</th>
                   <th className="p-4 text-right">အမြတ်ငွေ</th>
@@ -199,7 +199,7 @@ const DailySaleTracker = () => {
                         <td className="p-4 text-center">
                           <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">{sale.category}</span>
                         </td>
-                        <td className="p-4 text-center text-gray-600 font-semibold">{sale.payment_method || 'Cash'}</td> {/* 🔴 အသစ်ထပ်တိုးထားသည် */}
+                        <td className="p-4 text-center text-gray-600 font-semibold">{sale.payment_method || 'Cash'}</td> 
                         <td className="p-4 text-right text-gray-600">{Number(sale.buying_price).toLocaleString()}</td>
                         <td className="p-4 text-right font-bold text-blue-600">{Number(sale.selling_price).toLocaleString()}</td>
                         <td className="p-4 text-right font-bold text-green-600">{profit.toLocaleString()}</td>
