@@ -52,7 +52,8 @@ const DailySaleTracker = () => {
       .select();
 
     if (error) {
-      alert('အရောင်းစာရင်း သွင်းရာတွင် အမှားဖြစ်နေပါသည်။');
+      alert('Supabase Error: ' + error.message + '\n\n(ကျေးဇူးပြု၍ ဤစာသားကို Screenshot ရိုက်ပြပေးပါ ခင်ဗျာ)');
+      console.error(error);
     } else {
       setSales([data[0], ...sales]);
       setItemName('');
