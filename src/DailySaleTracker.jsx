@@ -6,22 +6,27 @@ const DailySaleTracker = () => {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Form States
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [itemName, setItemName] = useState('');
+  const [category, setCategory] = useState('Laptops'); // မူလပုံစံတွင်ပါသော အမျိုးအစား
+  const [paymentMethod, setPaymentMethod] = useState('Cash'); // 🔴 အသစ်ထပ်တိုးထားသော ငွေချေစနစ်
   const [buyingPrice, setBuyingPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Cash'); // အသစ်ထပ်တိုးထားသည်
+  
+  // Table တွင် လအလိုက် စစ်ထုတ်ရန် State
+  const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
 
   useEffect(() => {
     fetchSales();
-  }, [date]);
+  }, []);
 
   const fetchSales = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('daily_sales')
       .select('*')
-      .eq('date', date)
+      .order('date', { ascending: false })
       .order('created_at', { ascending: false });
     
     if (!error) setSales(data || []);
@@ -35,9 +40,10 @@ const DailySaleTracker = () => {
     const newSale = {
       date: date,
       item_name: itemName.trim(),
+      category: category,
+      payment_method: paymentMethod, // 🔴 အသစ်ထည့်ထားသည်
       buying_price: Number(buyingPrice),
-      selling_price: Number(sellingPrice),
-      payment_method: paymentMethod // အသစ်ထပ်တိုးထားသည်
+      selling_price: Number(sellingPrice)
     };
 
     const { data, error } = await supabase
@@ -52,53 +58,76 @@ const DailySaleTracker = () => {
       setItemName('');
       setBuyingPrice('');
       setSellingPrice('');
-      setPaymentMethod('Cash'); // အသစ်ထပ်တိုးထားသည်
     }
     setIsSaving(false);
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('ဤစာရင်းကို ဖျက်ရန် သေချာပါသလား?')) {
+      const { error } = await supabase.from('daily_sales').delete().eq('id', id);
+      if (!error) {
+        setSales(sales.filter(sale => sale.id !== id));
+      }
+    }
+  };
+
+  // လအလိုက် ဒေတာများ စစ်ထုတ်ခြင်းနှင့် တွက်ချက်ခြင်း (မူလပုံစံအတိုင်း)
+  const filteredSales = sales.filter(sale => sale.date.startsWith(filterMonth));
+  const totalSales = filteredSales.reduce((sum, item) => sum + Number(item.selling_price), 0);
+  const totalProfit = filteredSales.reduce((sum, item) => sum + (Number(item.selling_price) - Number(item.buying_price)), 0);
+  const totalQty = filteredSales.length;
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-        <span>💰</span> နေ့စဉ် အရောင်းစာရင်း သွင်းရန်
+        <span>💰</span> နေ့စဉ် အရောင်းမှတ်တမ်း
       </h2>
 
-      <div className="mb-6 flex items-center gap-3 bg-white p-4 rounded-lg shadow-sm w-max">
-        <label className="font-semibold text-gray-600">ရက်စွဲ ရွေးရန် :</label>
-        <input 
-          type="date" 
-          value={date} 
-          onChange={(e) => setDate(e.target.value)}
-          className="border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500 font-bold text-blue-600"
-        />
+      {/* ထိပ်ဆုံးက အမြတ်/အရင်း တွက်ချက်ပြသော ကတ်ပြားများ (မူလပုံစံ) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-blue-500">
+          <h3 className="text-sm font-semibold text-gray-500 mb-2">စုစုပေါင်း ရောင်းရငွေ</h3>
+          <p className="text-3xl font-bold text-blue-600">{totalSales.toLocaleString()} Ks</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+          <h3 className="text-sm font-semibold text-gray-500 mb-2">စုစုပေါင်း အမြတ်ငွေ</h3>
+          <p className="text-3xl font-bold text-green-500">{totalProfit.toLocaleString()} Ks</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 border-l-4 border-l-gray-600">
+          <h3 className="text-sm font-semibold text-gray-500 mb-2">ရောင်းရသည့် အရေအတွက်</h3>
+          <p className="text-3xl font-bold text-gray-800">{totalQty} ခု</p>
+        </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8 border-t-4 border-blue-600">
-        <form onSubmit={handleAddSale} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+      {/* စာရင်းသွင်းရန် Form (မူလပုံစံအတိုင်း) */}
+      <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-gray-200">
+        <h3 className="text-lg font-bold text-gray-800 mb-6">အရောင်းစာရင်း အသစ်ထည့်ရန်</h3>
+        <form onSubmit={handleAddSale} className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
           
           <div className="md:col-span-1">
-            <label className="block text-sm font-semibold text-gray-600 mb-1">ပစ္စည်းအမည်</label>
-            <input type="text" required value={itemName} onChange={(e) => setItemName(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" placeholder="ဥပမာ - Mouse" />
+            <label className="block text-xs font-bold text-gray-600 mb-1">ရက်စွဲ</label>
+            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold text-gray-600 mb-1">ပစ္စည်းအမည်</label>
+            <input type="text" required value={itemName} onChange={(e) => setItemName(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" placeholder="ဥပမာ - Dell Latitude 7490" />
           </div>
 
           <div className="md:col-span-1">
-            <label className="block text-sm font-semibold text-gray-600 mb-1">ဝယ်ရင်းဈေး (Ks)</label>
-            <input type="number" min="0" required value={buyingPrice} onChange={(e) => setBuyingPrice(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" placeholder="0" />
+            <label className="block text-xs font-bold text-gray-600 mb-1">အမျိုးအစား</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500 bg-white">
+              <option value="Laptops">Laptops</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Desktops">Desktops</option>
+              <option value="Others">Others</option>
+            </select>
           </div>
 
+          {/* 🔴 အသစ်ထပ်တိုးထားသော ငွေချေစနစ် */}
           <div className="md:col-span-1">
-            <label className="block text-sm font-semibold text-gray-600 mb-1">ရောင်းဈေး (Ks)</label>
-            <input type="number" min="0" required value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" placeholder="0" />
-          </div>
-
-          {/* အသစ်ထပ်တိုးထားသော ငွေချေစနစ် Dropdown */}
-          <div className="md:col-span-1">
-            <label className="block text-sm font-semibold text-gray-600 mb-1">ငွေချေစနစ်</label>
-            <select 
-              value={paymentMethod} 
-              onChange={(e) => setPaymentMethod(e.target.value)} 
-              className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500 bg-white"
-            >
+            <label className="block text-xs font-bold text-gray-600 mb-1">ငွေချေစနစ်</label>
+            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500 bg-white">
               <option value="Cash">Cash</option>
               <option value="KPay">KPay</option>
               <option value="WavePay">WavePay</option>
@@ -106,18 +135,38 @@ const DailySaleTracker = () => {
             </select>
           </div>
 
-          <div className="md:col-span-1 mt-2">
-            <button type="submit" disabled={isSaving} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded shadow transition disabled:opacity-50">
-              {isSaving ? 'သိမ်းဆည်းနေသည်...' : '+ ရောင်းမည်'}
+          <div className="md:col-span-1">
+            <label className="block text-xs font-bold text-gray-600 mb-1">ဝယ်ရင်းဈေး (Ks)</label>
+            <input type="number" min="0" required value={buyingPrice} onChange={(e) => setBuyingPrice(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" placeholder="0" />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="block text-xs font-bold text-gray-600 mb-1">ရောင်းဈေး (Ks)</label>
+            <input type="number" min="0" required value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" placeholder="0" />
+          </div>
+
+          <div className="md:col-span-7 mt-2">
+            <button type="submit" disabled={isSaving} className="bg-[#1a2b3c] hover:bg-gray-800 text-white font-bold py-2.5 px-6 rounded shadow transition disabled:opacity-50">
+              {isSaving ? 'သိမ်းဆည်းနေသည်...' : '+ စာရင်းသွင်းမည်'}
             </button>
           </div>
 
         </form>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="p-4 border-b bg-gray-50">
-          <h3 className="text-lg font-bold text-gray-700">ယနေ့ ရောင်းရသော စာရင်း ({sales.length} မှု)</h3>
+      {/* အောက်ဘက် အရောင်းမှတ်တမ်း ဇယား (မူလပုံစံအတိုင်း) */}
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+        <div className="p-4 border-b bg-white flex justify-between items-center">
+          <h3 className="text-lg font-bold text-gray-800">အရောင်းမှတ်တမ်းများ</h3>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 font-semibold">လအလိုက်ကြည့်ရန်:</label>
+            <input 
+              type="month" 
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="border border-gray-300 p-1.5 rounded text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
         </div>
         
         <div className="overflow-x-auto">
@@ -126,27 +175,42 @@ const DailySaleTracker = () => {
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-100 text-gray-700 text-sm uppercase tracking-wider">
-                  <th className="p-4 border-b font-bold text-center w-12">စဉ်</th>
-                  <th className="p-4 border-b font-bold">ပစ္စည်းအမည်</th>
-                  <th className="p-4 border-b font-bold">ငွေချေစနစ်</th> {/* အသစ်ထပ်တိုးထားသည် */}
-                  <th className="p-4 border-b font-bold text-right">ဝယ်ရင်းဈေး</th>
-                  <th className="p-4 border-b font-bold text-right">ရောင်းရငွေ</th>
+                <tr className="bg-gray-50 text-gray-700 text-xs font-bold uppercase tracking-wider border-b">
+                  <th className="p-4">ရက်စွဲ</th>
+                  <th className="p-4">ပစ္စည်းအမည်</th>
+                  <th className="p-4 text-center">အမျိုးအစား</th>
+                  <th className="p-4 text-center">ငွေချေစနစ်</th> {/* 🔴 အသစ်ထပ်တိုးထားသည် */}
+                  <th className="p-4 text-right">ဝယ်ရင်းဈေး</th>
+                  <th className="p-4 text-right">ရောင်းဈေး</th>
+                  <th className="p-4 text-right">အမြတ်ငွေ</th>
+                  <th className="p-4 text-center">လုပ်ဆောင်ချက်</th>
                 </tr>
               </thead>
               <tbody>
-                {sales.length === 0 ? (
-                  <tr><td colSpan="5" className="p-8 text-center text-gray-500">ယနေ့အတွက် အရောင်းစာရင်း မရှိသေးပါ။</td></tr>
+                {filteredSales.length === 0 ? (
+                  <tr><td colSpan="8" className="p-8 text-center text-gray-500">ဤလအတွက် အရောင်းစာရင်း မရှိသေးပါ။</td></tr>
                 ) : (
-                  sales.map((sale, index) => (
-                    <tr key={sale.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4 text-center text-sm font-bold text-gray-500">{index + 1}</td>
-                      <td className="p-4 text-sm font-semibold text-gray-800">{sale.item_name}</td>
-                      <td className="p-4 text-sm text-gray-800">{sale.payment_method || 'Cash'}</td> {/* အသစ်ထပ်တိုးထားသည် */}
-                      <td className="p-4 text-right text-sm text-gray-600">{Number(sale.buying_price).toLocaleString()} Ks</td>
-                      <td className="p-4 text-right text-sm font-bold text-blue-600">{Number(sale.selling_price).toLocaleString()} Ks</td>
-                    </tr>
-                  ))
+                  filteredSales.map((sale) => {
+                    const profit = Number(sale.selling_price) - Number(sale.buying_price);
+                    return (
+                      <tr key={sale.id} className="border-b hover:bg-gray-50 text-sm">
+                        <td className="p-4 text-gray-600">{sale.date}</td>
+                        <td className="p-4 font-bold text-gray-800">{sale.item_name}</td>
+                        <td className="p-4 text-center">
+                          <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs">{sale.category}</span>
+                        </td>
+                        <td className="p-4 text-center text-gray-600 font-semibold">{sale.payment_method || 'Cash'}</td> {/* 🔴 အသစ်ထပ်တိုးထားသည် */}
+                        <td className="p-4 text-right text-gray-600">{Number(sale.buying_price).toLocaleString()}</td>
+                        <td className="p-4 text-right font-bold text-blue-600">{Number(sale.selling_price).toLocaleString()}</td>
+                        <td className="p-4 text-right font-bold text-green-600">{profit.toLocaleString()}</td>
+                        <td className="p-4 text-center">
+                          <button onClick={() => handleDelete(sale.id)} className="text-red-500 hover:text-red-700 font-bold text-xs">
+                            ဖျက်မည်
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
                 )}
               </tbody>
             </table>
